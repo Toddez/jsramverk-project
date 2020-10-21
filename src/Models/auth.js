@@ -1,6 +1,7 @@
 class authStorage {
     static jwt = null;
     static email = null;
+    static data = {};
 
     static getToken = () => this.jwt;
     static setToken = (value) => {
