@@ -3,8 +3,10 @@ import { BrowserRouter as Router, NavLink, Link, Route, Switch, Redirect } from 
 
 import FrontPage from './Routes/FrontPage.jsx'; // eslint-disable-line no-unused-vars
 import Invest from './Routes/Invest.jsx'; // eslint-disable-line no-unused-vars
+import AboutItem from './Routes/AboutItem.jsx'; // eslint-disable-line no-unused-vars
 import Inventory from './Routes/Inventory.jsx'; // eslint-disable-line no-unused-vars
-import Auth from './Routes/Auth.jsx'; // eslint-disable-line no-unused-vars
+import Register from './Routes/Register.jsx'; // eslint-disable-line no-unused-vars
+import Login from './Routes/Login.jsx'; // eslint-disable-line no-unused-vars
 
 import auth from './Models/auth';
 
@@ -68,16 +70,18 @@ class App extends React.Component {
                     <div className='content'>
                         <Route exact path='/' component={FrontPage} />
                         <Route path='/invest' render={() => <Invest authorized={this.state.authorized} />} />
+                        <Route path='/about/:id' render={() => <AboutItem authorized={this.state.authorized} />} />
                         {
                             this.state.authorized
                                 ? <Switch>
                                     <Route exact path='/inventory' render={() => <Inventory authorized={this.state.authorized} />} />
                                     <Redirect strict from='/login' to='/'/>
                                     <Redirect strict from='/register' to='/'/>
+                                    <Redirect exact strict from='/' to='/inventory'/>
                                 </Switch>
                                 : <Switch>
-                                    <Route exact path='/login' render={() => <Auth onLogin={this.handleLogin} />} />
-                                    <Route exact path='/register' component={Auth} />
+                                    <Route exact path='/login' render={() => <Login onLogin={this.handleLogin} />} />
+                                    <Route exact path='/register' component={Register} />
                                     <Redirect strict from='/inventory' to='/login'/>
                                 </Switch>
                         }
