@@ -67,7 +67,7 @@ class Inventory extends React.Component {
                 <h2>Min depå</h2>
                 <div className='inv-deposit' onClick={this.toggleDepositWindow}>Sätt in pengar</div>
 
-                {this.state.depositWindowShown ? <DepositWindow setBalance={this.setBalance} toggle={this.toggleDepositWindow} authorized={this.props.authorized} /> : null}
+                {this.state.depositWindowShown ? <DepositWindow setBalance={this.setBalance} toggle={this.toggleDepositWindow} /> : null}
 
                 <h3>Översikt</h3>
                 <div className='inv-info'>
@@ -83,7 +83,7 @@ class Inventory extends React.Component {
 
                 <div className='savings'>
                     <div className='savings-header'>
-                        <h3>Sparande</h3>
+                        <h3>Investeringar</h3>
                         <span className='savings-total'>6 400 kr</span>
                     </div>
                     <div className='inv-list'>
