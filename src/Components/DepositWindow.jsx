@@ -5,7 +5,7 @@ import { withRouter } from 'react-router-dom'; // eslint-disable-line no-unused-
 import auth from '../Models/auth';
 import { api_url } from '../Models/config';
 
-class Inventory extends React.Component {
+class DepositWindow extends React.Component {
     constructor(props) {
         super(props);
 
@@ -70,7 +70,7 @@ class Inventory extends React.Component {
 
                             <label htmlFor="amount">
                                 Antal kronor
-                                <input type="number" name="amount" id="amount" placeholder="1000" required value={this.state.password} onChange={this.handleChange} />
+                                <input type="number" name="amount" id="amount" placeholder="Kronor..." required value={this.state.password} onChange={this.handleChange} />
                             </label>
 
                             <input type="submit" value="Sätt in pengar på konto" />
@@ -82,4 +82,4 @@ class Inventory extends React.Component {
     }
 }
 
-export default withRouter(Inventory);
+export default withRouter(DepositWindow);
