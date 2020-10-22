@@ -58,7 +58,7 @@ class Invest extends React.Component {
                         return (
                             <div className='stock-item' key={index}>
                                 <Link to={`/about/${value.id}`}>{value.name}</Link>
-                                <div className='stock-value'>{value.current} kr</div>
+                                <div className='stock-value'>{value.current.value} kr</div>
                             </div>
                         );
                     })
