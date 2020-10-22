@@ -5,7 +5,9 @@ import { Chart } from 'react-charts'; // eslint-disable-line no-unused-vars
 import BuyWindow from '../Components/BuyWindow'; // eslint-disable-line no-unused-vars
 import SellWindow from '../Components/SellWindow'; // eslint-disable-line no-unused-vars
 
-import { api_url } from '../Models/config';
+import socketIOClient from 'socket.io-client';
+
+import { api_url, socket_url } from '../Models/config';
 import auth from '../Models/auth';
 
 class AboutItem extends React.Component {
@@ -17,28 +19,61 @@ class AboutItem extends React.Component {
         this.state = {
             buyWindowShown: false,
             sellWindowShown: false,
-            data: {},
-            chartData: [
-                {
-                    label: 'Pris',
-                    data: []
-                }
-            ],
+            data: {
+                current: {}
+            },
+            chartData: [],
             chartAxes: [
                 {
                     primary: true,
-                    type: 'linear',
+                    type: 'time',
                     position: 'bottom'
                 },
                 {
                     type: 'linear',
                     position: 'left'
                 }
-            ]
+            ],
+            chartSeries: {
+                showPoints: false,
+                type: 'area'
+            }
         };
 
         this.toggleBuyWindow = this.toggleBuyWindow.bind(this);
         this.toggleSellWindow = this.toggleSellWindow.bind(this);
+    }
+
+    connect() {
+        const socket = socketIOClient(socket_url);
+        socket.on('connect', () => {
+            socket.emit('stock connect', { id: this.state.data.id, latest: this.state.data.value[this.state.data.value.length - 1].date });
+        });
+
+        socket.on('stock correction', (message) => {
+            if (this.state.data.id === message.id) {
+                this.setState({data: {
+                    ...this.state.data,
+                    value: message.value,
+                    current: message.value[message.value.length - 1]
+                }});
+
+                this.updateChart();
+            }
+        });
+
+        socket.on('stock update', (message) => {
+            if (this.state.data.id === message.id) {
+                this.setState({data: {
+                    ...this.state.data,
+                    value: [...this.state.data.value, message.value],
+                    current: message.value
+                }});
+
+
+                this.updateChart();
+            }
+        });
     }
 
     componentDidMount() {
@@ -57,25 +92,34 @@ class AboutItem extends React.Component {
                 }
 
                 if (this._isMounted) {
-                    const chartData = res.value.map((value, index) => {
-                        return [index, value];
-                    });
-
                     this.setState({
                         data: {
                             name: res.name,
                             current: res.current,
-                            id: res.id
-                        },
-                        chartData: [
-                            {
-                                label: 'Pris',
-                                data: chartData
-                            }
-                        ]
+                            id: res.id,
+                            value: res.value
+                        }
                     });
+
+                    this.updateChart();
+                    this.connect();
                 }
             });
+    }
+
+    updateChart() {
+        const chartData = this.state.data.value.map((value) => {
+            return [new Date(value.date), value.value];
+        });
+
+        this.setState({
+            chartData: [
+                {
+                    ...this.state.chartData[0],
+                    data: chartData
+                }
+            ]
+        });
     }
 
     componentWillUnmount() {
@@ -109,7 +153,7 @@ class AboutItem extends React.Component {
                     }
                     <div className='inv-info-item'>
                         <div className='inv-info-title'>Andel värde</div>
-                        <div className='inv-info-value'>{this.state.data.current} kr</div>
+                        <div className='inv-info-value'>{this.state.data.current.value} kr</div>
                     </div>
                 </div>
 
@@ -117,7 +161,7 @@ class AboutItem extends React.Component {
                 {this.state.sellWindowShown ? <SellWindow setParentState={this.setState} toggle={this.toggleSellWindow} /> : null}
 
                 <div className='chart-box'>
-                    <Chart data={this.state.chartData} axes={this.state.chartAxes} tooltip dark></Chart>
+                    <Chart data={this.state.chartData} axes={this.state.chartAxes} series={this.state.chartSeries} dark />
                 </div>
             </div>
         );
