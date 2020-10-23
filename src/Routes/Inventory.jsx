@@ -14,7 +14,9 @@ class Inventory extends React.Component {
 
         this.state = {
             depositWindowShown: false,
-            balance: auth.data.balance || 0
+            balance: auth.data.balance || 0,
+            inventory: [],
+            investmentValue: 0
         };
 
         this.toggleDepositWindow = this.toggleDepositWindow.bind(this);
@@ -40,10 +42,15 @@ class Inventory extends React.Component {
                 auth.data.balance = res.balance;
                 auth.data.inventory = res.inventory;
 
+                const totalInvestment = res.inventory.reduce((a, b) => {
+                    return a + b.amount * b.value;
+                }, 0);
+
                 if (this._isMounted) {
                     this.setState({
                         balance: auth.data.balance,
-                        inventory: auth.data.inventory
+                        inventory: auth.data.inventory,
+                        investmentValue: totalInvestment
                     });
                 }
             });
@@ -73,7 +80,7 @@ class Inventory extends React.Component {
                 <div className='inv-info'>
                     <div className='inv-info-item'>
                         <div className='inv-info-title'>Totalt värde</div>
-                        <div className='inv-info-value'>6 792 kr</div>
+                        <div className='inv-info-value'>{this.state.investmentValue + this.state.balance} kr</div>
                     </div>
                     <div className='inv-info-item'>
                         <div className='inv-info-title'>Tillgängligt för köp</div>
@@ -84,25 +91,21 @@ class Inventory extends React.Component {
                 <div className='savings'>
                     <div className='savings-header'>
                         <h3>Investeringar</h3>
-                        <span className='savings-total'>6 400 kr</span>
+                        <span className='savings-total'>{this.state.investmentValue} kr</span>
                     </div>
                     <div className='inv-list'>
-                        <div className='inv-list-item'>
-                            <div className='inv-list-title'><Link to='/about/1'>Fond/aktie 1</Link></div>
-                            <div className='inv-list-value'>1 600 kr</div>
-                        </div>
-                        <div className='inv-list-item'>
-                            <div className='inv-list-title'><Link to='/about/2'>Fond/aktie 2</Link></div>
-                            <div className='inv-list-value'>1 600 kr</div>
-                        </div>
-                        <div className='inv-list-item'>
-                            <div className='inv-list-title'><Link to='/about/3'>Fond/aktie 3</Link></div>
-                            <div className='inv-list-value'>1 600 kr</div>
-                        </div>
-                        <div className='inv-list-item'>
-                            <div className='inv-list-title'><Link to='/about/4'>Fond/aktie 4</Link></div>
-                            <div className='inv-list-value'>1 600 kr</div>
-                        </div>
+                        {this.state.inventory.map((value, index) => {
+                            if (value.amount == 0) {
+                                return null;
+                            }
+
+                            return (
+                                <div className='inv-list-item' key={index}>
+                                    <div className='inv-list-title'><Link to={`/about/${value.id}`}>{value.name}</Link></div>
+                                    <div className='inv-list-value'>{value.amount * value.value} kr</div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
