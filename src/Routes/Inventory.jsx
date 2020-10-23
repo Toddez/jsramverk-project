@@ -95,7 +95,7 @@ class Inventory extends React.Component {
                     </div>
                     <div className='inv-list'>
                         {this.state.inventory.map((value, index) => {
-                            if (value.amount == 0) {
+                            if (value.amount === 0) {
                                 return null;
                             }
 
