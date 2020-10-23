@@ -10,7 +10,7 @@ class BuyWindow extends React.Component {
         super(props);
 
         this.state = {
-
+            errorMsg: ''
         };
 
         this.handleClick = this.handleClick.bind(this);
@@ -47,9 +47,11 @@ class BuyWindow extends React.Component {
                         <fieldset>
                             <legend>Köp andelar</legend>
 
+                            { this.state.errorMsg && <div className='error'>{this.state.errorMsg}</div> }
+
                             <label htmlFor="amount">
                                 Antal andelar
-                                <input type="number" name="amount" id="amount" placeholder="Antal..." required value={this.state.password} onChange={this.handleChange} />
+                                <input type="number" name="amount" id="amount" placeholder="Antal..." required value={this.state.amount} onChange={this.handleChange} />
                             </label>
 
                             <input type="submit" value="Köp andelar" />

@@ -10,7 +10,7 @@ class SellWindow extends React.Component {
         super(props);
 
         this.state = {
-
+            errorMsg: ''
         };
 
         this.handleClick = this.handleClick.bind(this);
@@ -38,7 +38,7 @@ class SellWindow extends React.Component {
 
     render() {
         return (
-            <div className='modal buy-window'>
+            <div className='modal sell-window'>
                 <div className='modal-content'>
                     <span className='close' onClick={this.handleClick}>
                         &times;
@@ -47,9 +47,11 @@ class SellWindow extends React.Component {
                         <fieldset>
                             <legend>Sälj andelar</legend>
 
+                            { this.state.errorMsg && <div className='error'>{this.state.errorMsg}</div> }
+
                             <label htmlFor="amount">
                                 Antal andelar
-                                <input type="number" name="amount" id="amount" placeholder="Antal..." required value={this.state.password} onChange={this.handleChange} />
+                                <input type="number" name="amount" id="amount" placeholder="Antal..." required value={this.state.amount} onChange={this.handleChange} />
                             </label>
 
                             <input type="submit" value="Sälj andelar" />
