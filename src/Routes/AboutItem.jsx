@@ -20,7 +20,9 @@ class AboutItem extends React.Component {
             buyWindowShown: false,
             sellWindowShown: false,
             data: {
-                current: {}
+                id: this.props.match.params.id,
+                current: {},
+                amount: 0
             },
             chartData: [],
             chartAxes: [
@@ -37,23 +39,29 @@ class AboutItem extends React.Component {
             chartSeries: {
                 showPoints: false,
                 type: 'area'
-            }
+            },
+            width: '0px'
         };
 
         this.toggleBuyWindow = this.toggleBuyWindow.bind(this);
         this.toggleSellWindow = this.toggleSellWindow.bind(this);
+        this.getState = this.getState.bind(this);
+        this.setAmount = this.setAmount.bind(this);
     }
 
     connect() {
         const socket = socketIOClient(socket_url);
+        this.setState({socket: socket});
+
         socket.on('connect', () => {
-            socket.emit('stock connect', { id: this.state.data.id, latest: this.state.data.value[this.state.data.value.length - 1].date });
+            socket.emit('stock connect', { id: this.state.data.id });
         });
 
         socket.on('stock correction', (message) => {
             if (this.state.data.id === message.id) {
                 this.setState({data: {
                     ...this.state.data,
+                    name: message.name,
                     value: message.value,
                     current: message.value[message.value.length - 1]
                 }});
@@ -74,40 +82,51 @@ class AboutItem extends React.Component {
                 this.updateChart();
             }
         });
+
     }
 
     componentDidMount() {
         this._isMounted = true;
 
-        fetch(`${api_url}/stocks/${this.props.match.params.id}`, {
-            method: 'GET',
-            headers: {
-                'Content-type': 'application/json'
-            }
-        })
-            .then((res) => res.json())
-            .then((res) => {
-                if (res.errors) {
-                    return;
-                }
+        this.connect();
 
-                if (this._isMounted) {
-                    this.setState({
-                        data: {
-                            name: res.name,
-                            current: res.current,
-                            id: res.id,
-                            value: res.value
+        if (auth.authorized())
+            fetch(`${api_url}/transaction/inventory`, {
+                method: 'GET',
+                headers: {
+                    'Content-type': 'application/json',
+                    'x-access-token': auth.getToken()
+                }
+            })
+                .then((res) => res.json())
+                .then((res) => {
+                    if (res.errors) {
+                        return;
+                    }
+
+                    if (this._isMounted) {
+                        const stock = res.inventory.find((value) => {
+                            return value.id === this.state.data.id;
+                        });
+
+                        if (!stock) {
+                            return;
                         }
-                    });
 
-                    this.updateChart();
-                    this.connect();
-                }
-            });
+                        this.setState({
+                            data: {
+                                ...this.state.data,
+                                amount: stock.amount
+                            }
+                        });
+                    }
+                });
     }
 
     updateChart() {
+        if (!this._isMounted)
+            return;
+
         const chartData = this.state.data.value.map((value) => {
             return [new Date(value.date), value.value];
         });
@@ -120,10 +139,16 @@ class AboutItem extends React.Component {
                 }
             ]
         });
+
+        this.setState({width:'100%'});
+
     }
 
     componentWillUnmount() {
         this._isMounted = false;
+
+        if (this.state.socket)
+            this.state.socket.close();
     }
 
     toggleBuyWindow() {
@@ -132,6 +157,19 @@ class AboutItem extends React.Component {
 
     toggleSellWindow() {
         this.setState({sellWindowShown: !this.state.sellWindowShown});
+    }
+
+    getState() {
+        return this.state;
+    }
+
+    setAmount(amount) {
+        this.setState({
+            data: {
+                ...this.state.data,
+                amount: amount
+            }
+        });
     }
 
     render() {
@@ -151,16 +189,25 @@ class AboutItem extends React.Component {
                                 <div className='inv-info-big' onClick={this.toggleSellWindow}>Sälj</div>
                             </div> : null
                     }
+                    {
+                        auth.authorized() ?
+                            <div className='inv-info-item'>
+                                <div className='inv-info-title'>Ägda andelar</div>
+                                <div className='inv-info-value'>{this.state.data.amount} st</div>
+                            </div> : null
+                    }
                     <div className='inv-info-item'>
                         <div className='inv-info-title'>Andel värde</div>
                         <div className='inv-info-value'>{this.state.data.current.value} kr</div>
                     </div>
                 </div>
 
-                {this.state.buyWindowShown ? <BuyWindow setParentState={this.setState} toggle={this.toggleBuyWindow} /> : null}
-                {this.state.sellWindowShown ? <SellWindow setParentState={this.setState} toggle={this.toggleSellWindow} /> : null}
+                {this.state.buyWindowShown ? <BuyWindow getParentState={this.getState} setAmount={this.setAmount} toggle={this.toggleBuyWindow} /> : null}
+                {this.state.sellWindowShown ? <SellWindow getParentState={this.getState} setAmount={this.setAmount} toggle={this.toggleSellWindow} /> : null}
 
-                <div className='chart-box'>
+                <div className='chart-box' style={{
+                    width: this.state.width
+                }}>
                     <Chart data={this.state.chartData} axes={this.state.chartAxes} series={this.state.chartSeries} dark />
                 </div>
             </div>
