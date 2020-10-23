@@ -29,7 +29,31 @@ class SellWindow extends React.Component {
     handleSubmit(event) {
         event.preventDefault();
 
-        console.log('SUBMIT');
+        fetch(`${api_url}/transaction/sell`, {
+            method: 'POST',
+            headers: {
+                'Content-type': 'application/json',
+                'x-access-token': auth.getToken()
+            },
+            body: JSON.stringify({
+                amount: this.state.amount,
+                id: this.props.getParentState().data.id
+            })
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                if (res.errors) {
+                    this.setState({
+                        errorMsg: res.errors.reduce((res, err) => {
+                            return res + err.message;
+                        }, '')
+                    });
+                    return;
+                }
+
+                this.props.setAmount(res.amount);
+                this.props.toggle();
+            });
     }
 
     handleClick() {
