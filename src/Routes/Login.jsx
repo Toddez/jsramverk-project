@@ -73,7 +73,7 @@ class Login extends React.Component {
                         </label>
 
                         <label htmlFor="password">
-                            Password
+                            Lösenord
                             <input type="password" name="password" id="password" placeholder="******" required value={this.state.password} onChange={this.handleChange} />
                         </label>
 
