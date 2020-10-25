@@ -21,7 +21,7 @@ const browser = new webdriver.Builder()
 
 test.describe('project', () => {
     const go = (target, callback) => {
-        browser.findElement(By.linkText(target)).then((element) => {
+        browser.wait(until.elementLocated(By.linkText(target))).then((element) => {
             element.click();
             callback();
         });
@@ -90,19 +90,19 @@ test.describe('project', () => {
         });
     });
 
-    test.it('should go specific stock', (done) => {
-        go('Investera', () => {
-            go('AMD', () => {
-                hasH2('AMD');
+    test.it('should go specific stock', async (done) => {
+        go('Investera', async () => {
+            go('AMD', async () => {
+                await hasH2('AMD');
                 done();
             });
         });
     });
 
-    test.it('should go to index from anywhere', (done) => {
-        go('Investera', () => {
-            go('AMD', () => {
-                hasH2('AMD');
+    test.it('should go to index from anywhere', async (done) => {
+        go('Investera', async () => {
+            go('AMD', async () => {
+                await hasH2('AMD');
                 go('PROJEKT', () => {
                     urlMatches('/');
                     done();
